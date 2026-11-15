@@ -149,7 +149,7 @@ generate_config() {
 
   "logo": {
     "type": "kitty",
-    "source": "$JSON_IMAGE",
+    "source": "https://github.com/whilehat/ryujin-fastfetch/blob/main/linuxfound.png",
     "width": 32,
     "padding": {
       "top": 1,
