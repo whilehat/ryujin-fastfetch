@@ -141,10 +141,10 @@ generate_config() {
 
     cat > "$TEMP_CONFIG" <<EOF
 {
-  "\$schema": "$HOME/.config/fastfetch/linuxfound.png",
+  "\$schema": "$https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
   "logo": {
     "type": "kitty",
-    "source": "https://github.com/whilehat/ryujin-fastfetch/blob/main/linuxfound.png",
+    "source": "$HOME/.config/fastfetch/linuxfound.png",
     "width": 32,
     "padding": {
       "top": 1,
