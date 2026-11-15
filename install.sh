@@ -3,26 +3,21 @@
 
 # ==================================================
 # RYUJIN FASTFETCH CUSTOMIZER
+# AUTOMATIC INSTALLER
 # Author: whilehat
 # Version: 1.0.0
 # ==================================================
 
+set -Eeuo pipefail
+
 VERSION="1.0.0"
 APP="RYUJIN FASTFETCH"
 
-# Fastfetch executable (avoid wrapper recursion)
-REAL_FASTFETCH="/usr/bin/fastfetch"
+REPO="https://raw.githubusercontent.com/whilehat/ryujin-fastfetch/main"
 
-# Configuration
 CONFIG_DIR="$HOME/.config/fastfetch"
+CONFIG_FILE="$CONFIG_DIR/config.jsonc"
 IMAGE="$CONFIG_DIR/linuxfound.png"
-
-# GitHub raw image URL
-IMAGE_URL="https://raw.githubusercontent.com/whilehat/ryujin-fastfetch/main/linuxfound.png"
-
-# Image settings
-LOGO_TYPE="kitty"
-LOGO_WIDTH=32
 
 # --------------------------------------------------
 # COLORS
@@ -40,12 +35,12 @@ RESET='\033[0m'
 
 banner() {
     echo -e "${CYAN}"
-    echo "  ____  __   __      _  _  "
-    echo " |  _ \ \ \ / /     | || | "
-    echo " | |_) | \ V / _   _| || |_ "
+    echo "  ____  __   __      _  _"
+    echo " |  _ \ \ \ / /     | || |"
+    echo " | |_) | \ V / _   _| || |_"
     echo " |  _ <   | || | | |__   _|"
-    echo " | |_) |  | || |_| |  | |  "
-    echo " |____/   |_| \__,_|  |_|  "
+    echo " | |_) |  | || |_| |  | |"
+    echo " |____/   |_| \__,_|  |_|"
     echo ""
     echo "      FASTFETCH CUSTOMIZER"
     echo -e "${RESET}"
@@ -57,32 +52,46 @@ banner() {
 
 check_dependencies() {
 
-    if [[ ! -x "$REAL_FASTFETCH" ]]; then
-        echo -e "${RED}[ERROR] Fastfetch not installed.${RESET}"
-        exit 1
-    fi
+    echo -e "${CYAN}[RYUJIN] Checking dependencies...${RESET}"
 
-    if ! command -v curl >/dev/null 2>&1; then
-        echo -e "${RED}[ERROR] curl is required.${RESET}"
+    for cmd in curl file; do
+        if ! command -v "$cmd" >/dev/null 2>&1; then
+            echo -e "${RED}[ERROR] Missing dependency: $cmd${RESET}"
+            exit 1
+        fi
+    done
+
+    if ! command -v fastfetch >/dev/null 2>&1; then
+        echo -e "${RED}[ERROR] Fastfetch is not installed.${RESET}"
+        echo "Install Fastfetch using your distribution package manager."
         exit 1
     fi
+}
+
+# --------------------------------------------------
+# CREATE CONFIG DIRECTORY
+# --------------------------------------------------
+
+create_directory() {
+
+    echo -e "${CYAN}[RYUJIN] Creating configuration directory...${RESET}"
 
     mkdir -p "$CONFIG_DIR"
 }
 
 # --------------------------------------------------
-# DOWNLOAD IMAGE
+# DOWNLOAD CUSTOM IMAGE
 # --------------------------------------------------
 
 download_image() {
 
-    echo -e "${YELLOW}[RYUJIN] Downloading image...${RESET}"
+    echo -e "${YELLOW}[RYUJIN] Downloading custom image...${RESET}"
 
-    TEMP_IMAGE="${IMAGE}.tmp"
+    TEMP_IMAGE="$IMAGE.tmp"
 
     if curl -fL --retry 3 \
         --connect-timeout 15 \
-        "$IMAGE_URL" \
+        "$REPO/linuxfound.png" \
         -o "$TEMP_IMAGE"; then
 
         if [[ -s "$TEMP_IMAGE" ]] &&
@@ -90,131 +99,164 @@ download_image() {
 
             mv "$TEMP_IMAGE" "$IMAGE"
 
-            echo -e "${GREEN}[SUCCESS] Image installed.${RESET}"
-
+            echo -e "${GREEN}[SUCCESS] Image downloaded.${RESET}"
         else
             rm -f "$TEMP_IMAGE"
-            echo -e "${RED}[ERROR] Invalid image file.${RESET}"
+            echo -e "${RED}[ERROR] Invalid PNG image.${RESET}"
             exit 1
         fi
 
     else
         rm -f "$TEMP_IMAGE"
-        echo -e "${RED}[ERROR] Download failed.${RESET}"
+        echo -e "${RED}[ERROR] Image download failed.${RESET}"
         exit 1
     fi
 }
 
 # --------------------------------------------------
-# ENSURE IMAGE EXISTS
+# BACKUP EXISTING CONFIGURATION
 # --------------------------------------------------
 
-ensure_image() {
+backup_config() {
 
-    if [[ ! -s "$IMAGE" ]]; then
-        download_image
-    else
-        echo -e "${GREEN}[RYUJIN] Custom image found.${RESET}"
+    if [[ -f "$CONFIG_FILE" ]]; then
+
+        BACKUP="$CONFIG_FILE.backup.$(date +%Y%m%d%H%M%S)"
+
+        cp "$CONFIG_FILE" "$BACKUP"
+
+        echo -e "${YELLOW}[RYUJIN] Previous configuration backed up.${RESET}"
+        echo "Backup: $BACKUP"
     fi
 }
 
 # --------------------------------------------------
-# RUN FASTFETCH
+# GENERATE CONFIGURATION
 # --------------------------------------------------
 
-run_fastfetch() {
+generate_config() {
 
-    ensure_image
+    echo -e "${CYAN}[RYUJIN] Generating Fastfetch configuration...${RESET}"
 
-    echo -e "${CYAN}[RYUJIN] Starting $1 profile...${RESET}"
+    # Escape backslashes and quotes for JSON
+    JSON_IMAGE=$(printf '%s' "$IMAGE" | sed 's/\\/\\\\/g; s/"/\\"/g')
 
-    exec "$REAL_FASTFETCH" \
-        --logo "$IMAGE" \
-        --logo-type "$LOGO_TYPE" \
-        --logo-width "$LOGO_WIDTH"
+    TEMP_CONFIG="$CONFIG_FILE.tmp"
+
+    cat > "$TEMP_CONFIG" <<EOF
+{
+  "\$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+
+  "logo": {
+    "type": "kitty",
+    "source": "$JSON_IMAGE",
+    "width": 32,
+    "padding": {
+      "top": 1,
+      "left": 2,
+      "right": 3
+    }
+  },
+
+  "display": {
+    "separator": "  "
+  },
+
+  "modules": [
+    "break",
+    {
+      "type": "title",
+      "format": "{user-name}@{host-name}"
+    },
+    "separator",
+    {
+      "type": "os",
+      "key": "OS"
+    },
+    {
+      "type": "kernel",
+      "key": "KERNEL"
+    },
+    {
+      "type": "wm",
+      "key": "WM"
+    },
+    {
+      "type": "shell",
+      "key": "SHELL"
+    },
+    {
+      "type": "terminal",
+      "key": "TERM"
+    },
+    {
+      "type": "cpu",
+      "key": "CPU"
+    },
+    {
+      "type": "gpu",
+      "key": "GPU"
+    },
+    {
+      "type": "memory",
+      "key": "RAM"
+    },
+    {
+      "type": "disk",
+      "key": "DISK"
+    },
+    {
+      "type": "uptime",
+      "key": "UPTIME"
+    },
+    "break",
+    "colors"
+  ]
+}
+EOF
+
+    # Validate JSON before replacing the configuration
+    if ! fastfetch --config "$TEMP_CONFIG" --list-modules >/dev/null 2>&1; then
+        echo -e "${RED}[ERROR] Configuration validation failed.${RESET}"
+        rm -f "$TEMP_CONFIG"
+        exit 1
+    fi
+
+    mv "$TEMP_CONFIG" "$CONFIG_FILE"
+
+    echo -e "${GREEN}[SUCCESS] Configuration installed.${RESET}"
 }
 
 # --------------------------------------------------
-# HELP
+# COMPLETE INSTALLATION
 # --------------------------------------------------
 
-show_help() {
+install_ryujin() {
 
     banner
 
-    echo "Usage: fastfetch [OPTION]"
+    check_dependencies
+    create_directory
+    download_image
+    backup_config
+    generate_config
+
     echo ""
-    echo "Available options:"
+    echo -e "${GREEN}======================================${RESET}"
+    echo -e "${GREEN} RYUJIN FASTFETCH INSTALLED SUCCESSFULLY${RESET}"
+    echo -e "${GREEN}======================================${RESET}"
+
     echo ""
-    echo "  -arch       Arch Linux profile"
-    echo "  -kali       Kali Linux profile"
-    echo "  -fedora     Fedora profile"
-    echo "  -ubuntu     Ubuntu profile"
-    echo "  -update     Download latest image"
-    echo "  -remove     Remove custom image"
-    echo "  -version    Show version"
-    echo "  -help       Show help"
+    echo "Configuration: $CONFIG_FILE"
+    echo "Custom image:  $IMAGE"
     echo ""
-    echo "  No argument  Run normal Fastfetch"
+    echo "Run Fastfetch using:"
+    echo "fastfetch --config $CONFIG_FILE"
+    echo ""
 }
 
 # --------------------------------------------------
-# MAIN
+# START
 # --------------------------------------------------
 
-case "${1:-}" in
-
-    -arch)
-        check_dependencies
-        banner
-        run_fastfetch "Arch Linux"
-        ;;
-
-    -kali)
-        check_dependencies
-        banner
-        run_fastfetch "Kali Linux"
-        ;;
-
-    -fedora)
-        check_dependencies
-        banner
-        run_fastfetch "Fedora"
-        ;;
-
-    -ubuntu)
-        check_dependencies
-        banner
-        run_fastfetch "Ubuntu"
-        ;;
-
-    -update)
-        check_dependencies
-        banner
-        download_image
-        ;;
-
-    -remove)
-        rm -f "$IMAGE"
-        echo -e "${GREEN}[SUCCESS] Custom image removed.${RESET}"
-        ;;
-
-    -version|--version)
-        echo "$APP v$VERSION"
-        ;;
-
-    -help|--help|-h)
-        show_help
-        ;;
-
-    "")
-        exec "$REAL_FASTFETCH"
-        ;;
-
-    *)
-        echo -e "${RED}[ERROR] Unknown option: $1${RESET}"
-        echo "Use: fastfetch -help"
-        exit 1
-        ;;
-
-esac
+install_ryujin
