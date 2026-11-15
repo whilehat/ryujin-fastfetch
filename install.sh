@@ -135,18 +135,13 @@ backup_config() {
 # --------------------------------------------------
 
 generate_config() {
-
     echo -e "${CYAN}[RYUJIN] Generating Fastfetch configuration...${RESET}"
-
-    # Escape backslashes and quotes for JSON
-    JSON_IMAGE=$(printf '%s' "$IMAGE" | sed 's/\\/\\\\/g; s/"/\\"/g')
 
     TEMP_CONFIG="$CONFIG_FILE.tmp"
 
     cat > "$TEMP_CONFIG" <<EOF
 {
   "\$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
-
   "logo": {
     "type": "kitty",
     "source": "https://github.com/whilehat/ryujin-fastfetch/blob/main/linuxfound.png",
@@ -157,11 +152,9 @@ generate_config() {
       "right": 3
     }
   },
-
   "display": {
     "separator": "  "
   },
-
   "modules": [
     "break",
     {
@@ -169,59 +162,30 @@ generate_config() {
       "format": "{user-name}@{host-name}"
     },
     "separator",
-    {
-      "type": "os",
-      "key": "OS"
-    },
-    {
-      "type": "kernel",
-      "key": "KERNEL"
-    },
-    {
-      "type": "wm",
-      "key": "WM"
-    },
-    {
-      "type": "shell",
-      "key": "SHELL"
-    },
-    {
-      "type": "terminal",
-      "key": "TERM"
-    },
-    {
-      "type": "cpu",
-      "key": "CPU"
-    },
-    {
-      "type": "gpu",
-      "key": "GPU"
-    },
-    {
-      "type": "memory",
-      "key": "RAM"
-    },
-    {
-      "type": "disk",
-      "key": "DISK"
-    },
-    {
-      "type": "uptime",
-      "key": "UPTIME"
-    },
+    {"type": "os", "key": "OS"},
+    {"type": "kernel", "key": "KERNEL"},
+    {"type": "wm", "key": "WM"},
+    {"type": "shell", "key": "SHELL"},
+    {"type": "terminal", "key": "TERM"},
+    {"type": "cpu", "key": "CPU"},
+    {"type": "gpu", "key": "GPU"},
+    {"type": "memory", "key": "RAM"},
+    {"type": "disk", "key": "DISK"},
+    {"type": "uptime", "key": "UPTIME"},
     "break",
     "colors"
   ]
 }
 EOF
 
-    # Validate JSON before replacing the configuration
-    if ! fastfetch --config "$TEMP_CONFIG" --list-modules >/dev/null 2>&1; then
-        echo -e "${RED}[ERROR] Configuration validation failed.${RESET}"
+    # Validate JSON syntax using Python
+    if ! python3 -m json.tool "$TEMP_CONFIG" >/dev/null 2>&1; then
+        echo -e "${RED}[ERROR] Invalid JSON configuration.${RESET}"
         rm -f "$TEMP_CONFIG"
         exit 1
     fi
 
+    # Install configuration
     mv "$TEMP_CONFIG" "$CONFIG_FILE"
 
     echo -e "${GREEN}[SUCCESS] Configuration installed.${RESET}"
