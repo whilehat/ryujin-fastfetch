@@ -1,149 +1,197 @@
 # RYUJIN Fastfetch Customizer
 
-\<p align="center">
-&#x20; \<b>A custom Fastfetch image and Linux profile launcher.\</b>
-\</p>
+<p align="center">
+  <img src="linuxfound.png" alt="RYUJIN Linux Logo" width="180">
+</p>
 
-\<p align="center">
-&#x20; \<img src="[https://raw.githubusercontent.com/whilehat/ryujin-fastfetch/main/linuxfound.png](https://raw.githubusercontent.com/whilehat/ryujin-fastfetch/main/linuxfound.png)" width="180" alt="RYUJIN Custom Logo">
-\</p>
+<h1 align="center">RYUJIN FASTFETCH</h1>
 
-\<p align="center">
-&#x20; \<img src="[https://img.shields.io/badge/Version-1.0.0-red?style=for-the-badge](https://img.shields.io/badge/Version-1.0.0-red?style=for-the-badge)">
-&#x20; \<img src="[https://img.shields.io/badge/Platform-Linux-blue?style=for-the-badge](https://img.shields.io/badge/Platform-Linux-blue?style=for-the-badge)">
-&#x20; \<img src="[https://img.shields.io/badge/Language-Bash-green?style=for-the-badge](https://img.shields.io/badge/Language-Bash-green?style=for-the-badge)">
-&#x20; \<img src="[https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)">
-\</p>
+<p align="center">
+  A custom Fastfetch configuration installer for Linux.
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Platform-Linux-blue?style=for-the-badge">
+  <img src="https://img.shields.io/badge/Shell-Bash-green?style=for-the-badge">
+  <img src="https://img.shields.io/badge/Version-1.0.0-orange?style=for-the-badge">
+  <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge">
+</p>
+
+---
 
 ## About
 
-**RYUJIN Fastfetch Customizer** is a Bash-based utility that customizes the Fastfetch terminal experience by replacing the default distribution logo with a custom image.
+**RYUJIN Fastfetch Customizer** is a Bash-based automatic installer that customizes the appearance of [Fastfetch](https://github.com/fastfetch-cli/fastfetch) on Linux systems.
 
-It supports multiple Linux profile commands, automatic image downloading from GitHub, and simple image management.
+It automatically downloads the RYUJIN custom Linux logo, creates the Fastfetch configuration directory, backs up an existing configuration, and generates a personalized Fastfetch configuration.
+
+The goal is to make Linux terminal customization simple and easy to install.
 
 ## Features
 
-- Custom image instead of the default distribution logo.
-- Automatic image downloading from GitHub.
-- Arch Linux profile.
-- Kali Linux profile.
-- Fedora profile.
-- Ubuntu profile.
-- Image update functionality.
-- Custom image removal.
-- Help and version commands.
-- Kitty graphics protocol support.
+- Automatic Fastfetch configuration setup.
+- Downloads the custom RYUJIN PNG logo from GitHub.
+- Kitty graphics protocol logo support.
+- Automatically creates the Fastfetch configuration directory.
+- Backs up an existing configuration before replacing it.
+- Custom system information layout.
+- JSON configuration syntax validation.
+- Simple installation process.
 
-## Supported Profiles
+## Preview
 
-| Command             | Profile    |
-| ------------------- | ---------- |
-| `fastfetch -arch`   | Arch Linux |
-| `fastfetch -kali`   | Kali Linux |
-| `fastfetch -fedora` | Fedora     |
-| `fastfetch -ubuntu` | Ubuntu     |
-
-**Note:** These commands select display profiles. Fastfetch continues to detect the actual operating system automatically. All profiles currently use the same custom image.
+<p align="center">
+  <img src="linuxfound.png" alt="RYUJIN Custom Logo" width="250">
+</p>
 
 ## Requirements
 
-- Linux operating system
-- Fastfetch
-- Bash
-- curl
-- file
-- Kitty-compatible terminal graphics support for image rendering
+Make sure the following packages are installed:
+
+| Dependency | Purpose |
+|---|---|
+| Fastfetch | Displays system information |
+| curl | Downloads the custom logo |
+| file | Checks the downloaded PNG |
+| Python 3 | Validates JSON syntax |
+
+A terminal supporting the Kitty graphics protocol is required to display the custom image using the configured logo type.
 
 ## Installation
 
-### 1. Install dependencies
-
-**Arch Linux**
-
-```bash
-sudo pacman -S fastfetch curl file
-```
-
-**Kali Linux**
-
-```bash
-sudo apt install fastfetch curl file
-```
-
-**Fedora**
-
-```bash
-sudo dnf install fastfetch curl file
-```
-
-### 2. Clone the repository
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/whilehat/ryujin-fastfetch.git
 ```
 
+### 2. Enter the project directory
+
 ```bash
 cd ryujin-fastfetch
 ```
 
-### 3. Make the script executable
+### 3. Make the installer executable
 
 ```bash
-chmod +x fastfetch.sh
+chmod +x install.sh
 ```
 
-### 4. Install the customizer
-
-The current script can be run directly:
+### 4. Run the installer
 
 ```bash
-./fastfetch.sh -arch
+./install.sh
 ```
 
-For the `fastfetch -arch` command interface, install the script as a wrapper in your local PATH and configure it to invoke the system Fastfetch binary.
+The installer will automatically:
 
-## Usage
+1. Check the required dependencies.
+2. Create `~/.config/fastfetch`.
+3. Download `linuxfound.png`.
+4. Back up your existing Fastfetch configuration.
+5. Generate `config.jsonc`.
+6. Validate the generated JSON configuration.
 
-### Launch custom profiles
+## Run Fastfetch
+
+After installation, execute:
 
 ```bash
-fastfetch -arch
+fastfetch --config ~/.config/fastfetch/config.jsonc
 ```
 
-```bash
-fastfetch -kali
+## Configuration
+
+The installer generates the following configuration:
+
+```text
+~/.config/fastfetch/
+├── config.jsonc
+└── linuxfound.png
 ```
 
-```bash
-fastfetch -fedora
+### Logo Configuration
+
+```json
+"logo": {
+  "type": "kitty",
+  "source": "/home/username/.config/fastfetch/linuxfound.png",
+  "width": 32,
+  "padding": {
+    "top": 1,
+    "left": 2,
+    "right": 3
+  }
+}
 ```
 
-```bash
-fastfetch -ubuntu
+### Displayed System Information
+
+The custom configuration displays:
+
+- Username and hostname
+- Operating system
+- Kernel version
+- Window manager
+- Shell
+- Terminal
+- CPU
+- GPU
+- RAM
+- Disk
+- System uptime
+- Terminal color palette
+
+## Backup
+
+If a Fastfetch configuration already exists, the installer creates a timestamped backup before replacing it.
+
+Example:
+
+```text
+config.jsonc.backup.20261115120000
 ```
 
-### Update custom image
+## Troubleshooting
+
+### Logo is not displayed
+
+Check whether the image exists:
 
 ```bash
-fastfetch -update
+ls -lh ~/.config/fastfetch/linuxfound.png
 ```
 
-### Remove custom image
+Check the image format:
 
 ```bash
-fastfetch -remove
+file ~/.config/fastfetch/linuxfound.png
 ```
 
-### Display version
+Make sure your terminal supports the Kitty graphics protocol.
+
+### Fastfetch configuration error
+
+Run:
 
 ```bash
-fastfetch -version
+fastfetch --config ~/.config/fastfetch/config.jsonc
 ```
 
-### Display help
+Check the configuration file:
 
 ```bash
-fastfetch -help
+nano ~/.config/fastfetch/config.jsonc
+```
+
+### Download error
+
+Test the raw GitHub image URL:
+
+```bash
+curl -fL \
+https://raw.githubusercontent.com/whilehat/ryujin-fastfetch/main/linuxfound.png \
+-o /tmp/linuxfound.png
 ```
 
 ## Project Structure
@@ -151,66 +199,25 @@ fastfetch -help
 ```text
 ryujin-fastfetch/
 │
-├── fastfetch.sh
 ├── install.sh
+├── linuxfound.png
 ├── README.md
-├── LICENSE
-└── linuxfound.png
+└── LICENSE
 ```
-
-## Configuration
-
-The custom image is downloaded from:
-
-```text
-https://raw.githubusercontent.com/whilehat/ryujin-fastfetch/main/linuxfound.png
-```
-
-The image is stored locally at:
-
-```text
-~/.config/fastfetch/linuxfound.png
-```
-
-The default image settings are:
-
-```bash
-LOGO_TYPE="kitty"
-LOGO_WIDTH=32
-```
-
-## Technologies Used
-
-- Bash Scripting
-- Fastfetch
-- Linux
-- cURL
-- GitHub
-- Kitty Graphics Protocol
 
 ## Future Improvements
 
-- Individual logos for different Linux distributions.
-- Automatic Linux distribution detection.
-- Interactive installation wizard.
+- Multiple custom logo profiles.
+- Interactive configuration menu.
+- Automatic dependency installation.
+- Uninstaller functionality.
 - Support for additional terminal graphics protocols.
-- Configuration backup and restoration.
-- One-command installation.
-
-## Contributing
-
-Contributions, suggestions, and improvements are welcome.
-
-1. Fork this repository.
-2. Create a feature branch.
-3. Commit your changes.
-4. Submit a Pull Request.
 
 ## Author
 
 **whilehat**
 
-GitHub: [https://github.com/whilehat](https://github.com/whilehat)
+GitHub: https://github.com/whilehat
 
 ## License
 
@@ -218,8 +225,8 @@ This project is licensed under the MIT License.
 
 ---
 
-\<p align="center">
-&#x20; \<b>RYUJIN — Customize Your Terminal. Define Your Identity.\</b>
-\</p>Drag files here to add them to your repository&#x20;
-
-Or
+<p align="center">
+  <b>RYUJIN FASTFETCH CUSTOMIZER</b>
+  <br>
+  Customize your Linux terminal. Make it yours.
+</p>
